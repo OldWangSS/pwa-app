@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#1a73e8">
+<link rel="manifest" href="manifest.json">
+<title>政企需求助手</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- 注册页 -->
+<div id="page-register" class="page">
+  <div class="header">
+    <div class="title">首次使用</div>
+    <div class="sub">填写信息，为你匹配产品线</div>
+  </div>
+  <div class="card">
+    <div class="field">
+      <label>姓名</label>
+      <input id="reg-name" placeholder="请输入姓名" autocomplete="name">
+    </div>
+    <div class="field">
+      <label>部门</label>
+      <select id="reg-dept">
+        <option value="">请选择部门</option>
+        <option>系统集成中心</option><option>战略客户中心</option>
+        <option>双塔分公司</option><option>龙城分公司</option>
+        <option>朝阳县分公司</option><option>北票分公司</option>
+        <option>建平分公司</option><option>凌源分公司</option>
+        <option>喀左分公司</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>职位</label>
+      <select id="reg-pos">
+        <option value="">请选择职位</option>
+        <option>客户经理</option><option>产品经理</option><option>网格经理</option>
+      </select>
+    </div>
+    <div class="field" id="reg-products-wrap" style="display:none">
+      <label>负责产品（可多选）</label>
+      <div class="check-group" id="reg-products"></div>
+    </div>
+  </div>
+  <button class="btn" id="btn-register" disabled>开始使用</button>
+</div>
+
+<!-- 主页 -->
+<div id="page-main" class="page" style="display:none">
+  <div class="header">
+    <div class="greeting" id="greeting"></div>
+    <div class="badge">政企产品</div>
+  </div>
+
+  <!-- 语音卡片 -->
+  <div class="card voice-card">
+    <div class="v-head">🎤 语音录入需求</div>
+    <div class="v-hint">按住说话，AI 自动识别并推荐产品</div>
+    <button class="v-btn" id="voice-btn">🎙️ 按住说话</button>
+    <div id="voice-status" style="display:none;text-align:center;color:#7c4dff;margin-top:10px"></div>
+    <div id="voice-result" style="display:none">
+      <div class="voice-text-area">
+        <textarea id="voice-text-edit" placeholder="修改识别结果..."></textarea>
+        <button class="btn btn-purple" id="btn-analyze">🤖 AI 智能推荐产品</button>
+      </div>
+    </div>
+    <div id="voice-ai-result" style="display:none"></div>
+  </div>
+
+  <!-- 客户名称 -->
+  <div class="card">
+    <div class="field">
+      <label>客户名称</label>
+      <input id="customer-name" placeholder="请输入客户名称">
+    </div>
+  </div>
+
+  <!-- 需求产品 1-5 -->
+  <div id="product-cards"></div>
+
+  <button class="btn" id="btn-submit">提交需求</button>
+
+  <!-- 需求清单 -->
+  <div id="order-result" style="display:none"></div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
