@@ -145,71 +145,115 @@ function initVoice() {
   const btn = $('voice-btn');
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
+  // iOS 全系不支持
+  if (!SpeechRecognition || /iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+    btn.textContent = '⚠️ iOS 暂不支持语音';
+    btn.disabled = true;
+    $('voice-status').textContent = '请使用安卓手机或电脑端 Chrome';
+    $('voice-status').style.display = '';
+    return;
+  }
+
   if (!SpeechRecognition) {
     btn.textContent = '⚠️ 浏览器不支持语音';
     btn.disabled = true;
     return;
   }
 
-  const rec = new SpeechRecognition();
-  rec.lang = 'zh-CN';
-  rec.interimResults = false;
-  rec.continuous = false;
+  let rec = null;
 
-  rec.onresult = (e) => {
-    const text = e.results[0][0].transcript;
-    state.voiceText = text;
-    btn.classList.remove('recording');
-    btn.textContent = '🎙️ 按住说话';
-    state.recording = false;
-    $('voice-result').style.display = '';
-    $('voice-text-edit').value = text;
-    $('voice-status').style.display = 'none';
-  };
+  function makeRec() {
+    const r = new SpeechRecognition();
+    r.lang = 'zh-CN';
+    r.interimResults = false;
+    r.continuous = false;
 
-  rec.onerror = (e) => {
-    btn.classList.remove('recording');
-    btn.textContent = '🎙️ 按住说话';
-    state.recording = false;
-    $('voice-status').textContent = '识别失败: ' + e.error;
-    $('voice-status').style.display = '';
-  };
+    r.onstart = () => {
+      $('voice-status').textContent = '🎤 录音中...';
+      $('voice-status').style.display = '';
+    };
 
-  rec.onend = () => {
-    btn.classList.remove('recording');
-    btn.textContent = '🎙️ 按住说话';
-    state.recording = false;
-    $('voice-status').style.display = 'none';
-  };
+    r.onresult = (e) => {
+      const text = e.results[0][0].transcript;
+      state.voiceText = text;
+      btn.classList.remove('recording');
+      btn.textContent = '🎙️ 按住说话';
+      state.recording = false;
+      $('voice-result').style.display = '';
+      $('voice-text-edit').value = text;
+      $('voice-status').style.display = 'none';
+    };
 
-  state.recognition = rec;
+    r.onerror = (e) => {
+      btn.classList.remove('recording');
+      btn.textContent = '🎙️ 按住说话';
+      state.recording = false;
+      const msgs = {
+        'not-allowed': '麦克风权限未授权，请在浏览器设置中允许',
+        'no-speech': '未检测到语音，请靠近麦克风说话',
+        'audio-capture': '未找到麦克风设备',
+        'network': '网络连接失败'
+      };
+      $('voice-status').textContent = msgs[e.error] || ('识别失败: ' + e.error);
+      $('voice-status').style.display = '';
+    };
 
-  // 按住录音（touch+mouse）
-  btn.addEventListener('pointerdown', () => {
+    r.onend = () => {
+      btn.classList.remove('recording');
+      btn.textContent = '🎙️ 按住说话';
+      state.recording = false;
+      if (!state.voiceResult) {
+        $('voice-status').style.display = 'none';
+      }
+    };
+
+    return r;
+  }
+
+  function startRecord(e) {
+    e.preventDefault();
     btn.classList.add('recording');
     btn.textContent = '🔴 松开发送';
     state.recording = true;
+    state.voiceText = '';
     $('voice-result').style.display = 'none';
     $('voice-ai-result').style.display = 'none';
+    $('voice-status').textContent = '⏳ 请求麦克风...';
     $('voice-status').style.display = '';
-    $('voice-status').textContent = '🎤 录音中...';
-    try { rec.start(); } catch(e) {}
-  });
 
-  btn.addEventListener('pointerup', () => {
+    rec = makeRec();
+    try {
+      rec.start();
+    } catch(err) {
+      btn.classList.remove('recording');
+      btn.textContent = '🎙️ 按住说话';
+      state.recording = false;
+      $('voice-status').textContent = '启动失败: ' + err.message;
+    }
+  }
+
+  function stopRecord(e) {
+    e.preventDefault();
+    if (!state.recording || !rec) return;
     btn.classList.remove('recording');
     btn.textContent = '🎙️ 按住说话';
     state.recording = false;
     $('voice-status').textContent = '⏳ 识别中...';
-    try { rec.stop(); } catch(e) {}
-  });
+    try { rec.stop(); } catch(err) {}
+  }
 
-  btn.addEventListener('pointerleave', () => {
-    if (state.recording) {
-      btn.classList.remove('recording');
-      btn.textContent = '🎙️ 按住说话';
-      state.recording = false;
-      try { rec.stop(); } catch(e) {}
+  // 移动端优先 touch 事件
+  btn.addEventListener('touchstart', startRecord, {passive: false});
+  btn.addEventListener('touchend', stopRecord, {passive: false});
+  btn.addEventListener('touchcancel', stopRecord, {passive: false});
+
+  // 桌面端 mouse 事件兜底
+  btn.addEventListener('mousedown', startRecord);
+  btn.addEventListener('mouseup', stopRecord);
+  btn.addEventListener('mouseleave', (e) => {
+    if (state.recording && rec) {
+      e.preventDefault();
+      stopRecord(e);
     }
   });
 
