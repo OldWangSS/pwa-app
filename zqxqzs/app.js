@@ -143,10 +143,23 @@ function upd(i, key, val) { state.products[i][key] = val; }
 // ============ VOICE ============
 function initVoice() {
   const btn = $('voice-btn');
+  const ua = navigator.userAgent;
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const isWeChat = /MicroMessenger/i.test(ua);
+  const isIOS = /iPhone|iPad|iPod/i.test(ua);
+
+  // 微信内置浏览器不支持
+  if (isWeChat) {
+    btn.textContent = '📱 微信内不支持语音';
+    btn.disabled = true;
+    btn.classList.add('disabled');
+    $('voice-status').innerHTML = '请点击右上角 <b>「···」→「在浏览器中打开」</b>';
+    $('voice-status').style.display = '';
+    return;
+  }
 
   // iOS 全系不支持
-  if (!SpeechRecognition || /iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+  if (!SpeechRecognition || isIOS) {
     btn.textContent = '⚠️ iOS 暂不支持语音';
     btn.disabled = true;
     $('voice-status').textContent = '请使用安卓手机或电脑端 Chrome';
