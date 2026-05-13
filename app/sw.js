@@ -1,5 +1,5 @@
-const CACHE = 'meal-v1';
-const FILES = ['/', '/index.html', '/styles.css', '/app.js', '/manifest.json'];
+const CACHE = 'meal-v2';
+const FILES = ['/app/', '/app/index.html', '/app/styles.css', '/app/app.js', '/app/manifest.json'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)));
